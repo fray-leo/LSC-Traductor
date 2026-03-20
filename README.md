@@ -22,7 +22,7 @@ Las personas sordas en Colombia enfrentan barreras de comunicación constantes c
 ## Stack tecnológico
 
 | Componente | Tecnología |
-|---|---|
+| --- | --- |
 | Lenguaje | Python 3.10+ |
 | Detección de manos | [MediaPipe](https://mediapipe.dev/) |
 | Clasificación de señas | scikit-learn (RandomForest / SVM) |
@@ -34,7 +34,7 @@ Las personas sordas en Colombia enfrentan barreras de comunicación constantes c
 
 ## Estructura del repositorio
 
-```
+´´´
 lsc-traductor/
 │
 ├── data/                   # Datos de entrenamiento (landmarks por seña)
@@ -53,7 +53,7 @@ lsc-traductor/
 │
 ├── requirements.txt
 └── README.md
-```
+´´´
 
 ---
 
@@ -105,7 +105,7 @@ git push origin feature/nombre-de-tu-tarea
 ### Ramas sugeridas por tarea
 
 | Rama | Responsable | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | `feature/captura-landmarks` | — | Captura de video y extracción de puntos de mano |
 | `feature/entrenamiento` | — | Recolección de datos y entrenamiento del modelo |
 | `feature/interfaz` | — | Diseño de la interfaz en tkinter |
@@ -131,7 +131,7 @@ git push origin feature/nombre-de-tu-tarea
 ## Equipo
 
 | Nombre | Código | Rol |
-|---|---|---|
+| --- | --- | --- |
 | Bautista Talero, Leonardo Gael | 202420219 | Scrum Master / Desarrollo |
 | Castro Gualteros, Nicolás | — | — |
 | Fernández Pachón, Samuel | 202616452 | — |
