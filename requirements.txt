@@ -1,0 +1,9 @@
+# LSC Traductor — dependencias
+# Instalar con: pip install -r requirements.txt
+
+mediapipe==0.10.9
+opencv-python==4.9.0.80
+scikit-learn==1.4.2
+Pillow==10.3.0
+joblib==1.4.0
+numpy==1.26.4
