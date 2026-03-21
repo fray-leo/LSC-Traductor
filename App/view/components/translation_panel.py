@@ -55,7 +55,7 @@ class TranslationPanel(tk.Frame):
         """
         super().__init__(parent, bg=_BG, **kwargs)
         self._on_clear = on_clear
-        self._history_items: list[tk.Frame] = []
+        self._history_items: list[tk.Widget] = []
 
         self._build()
 

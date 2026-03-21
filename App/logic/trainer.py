@@ -22,14 +22,14 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-from logic.capture import HandCapture
+from App.logic.capture import HandCapture
 
 # ------------------------------------------------------------------
 # Rutas
 # ------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data" / "landmarks"
+ROOT = Path(__file__).resolve().parent.parent.parent
+DATA_DIR = ROOT / "Data" / "landmarks"
 MODEL_DIR = ROOT / "model"
 MODEL_PATH = MODEL_DIR / "lsc_classifier.pkl"
 ENCODER_PATH = MODEL_DIR / "label_encoder.pkl"
@@ -84,9 +84,10 @@ def collect(sign: str, n_samples: int = 80, countdown: int = 3):
             if not cap.read():
                 break
             frame = cap.get_frame()
-            remaining = countdown - int(time.time() - start)
-            _overlay(frame, f"Preparate para: {sign.upper()}", f"Iniciando en {remaining}s...", color=(60, 180, 60))
-            cv2.imshow("LSC Trainer — recoleccion", frame)
+            if frame is not None:
+                remaining = countdown - int(time.time() - start)
+                _overlay(frame, f"Preparate para: {sign.upper()}", f"Iniciando en {remaining}s...", color=(60, 180, 60))
+                cv2.imshow("LSC Trainer - recoleccion", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 return
@@ -109,19 +110,20 @@ def collect(sign: str, n_samples: int = 80, countdown: int = 3):
                 frame = cap.get_frame()
                 landmarks = cap.get_landmarks()
 
-                if landmarks is not None:
-                    writer.writerow(landmarks + [sign])
-                    collected += 1
+                if frame is not None:
+                    if landmarks is not None:
+                        writer.writerow(landmarks + [sign])
+                        collected += 1
 
-                progress = collected / n_samples
-                _overlay(
-                    frame,
-                    f"Grabando: {sign.upper()}",
-                    f"{collected}/{n_samples} muestras",
-                    color=(60, 60, 220),
-                    progress=progress,
-                )
-                cv2.imshow("LSC Trainer — recoleccion", frame)
+                    progress = collected / n_samples
+                    _overlay(
+                        frame,
+                        f"Grabando: {sign.upper()}",
+                        f"{collected}/{n_samples} muestras",
+                        color=(60, 60, 220),
+                        progress=progress,
+                    )
+                    cv2.imshow("LSC Trainer - recoleccion", frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     print(f"   Interrumpido. Se guardaron {collected} muestras.")
@@ -235,12 +237,16 @@ def _count_rows(csv_path: Path) -> int:
         return max(0, sum(1 for _ in f) - 1)  # -1 por el encabezado
 
 
-def _overlay(frame, title: str, subtitle: str, color: tuple, progress: float = None):
+def _overlay(frame, title: str, subtitle: str, color: tuple, progress: float | None = None):
     """
     Dibuja un banner semitransparente en la parte inferior del frame
     con título, subtítulo y barra de progreso opcional.
     """
+    if frame is None or not hasattr(frame, "shape"):
+        return
+
     h, w = frame.shape[:2]
+    color = tuple(int(c) for c in color)
     banner_h = 70
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, h - banner_h), (w, h), (20, 20, 20), -1)

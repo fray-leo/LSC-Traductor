@@ -13,7 +13,7 @@ from pathlib import Path
 # Ruta
 # ------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 DB_PATH = ROOT / "db" / "historial.db"
 
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -26,12 +26,6 @@ class TranslationDB:
     """
     Interfaz simple sobre SQLite para guardar y consultar
     el historial de señas detectadas.
-
-    Uso:
-        db = TranslationDB()
-        db.save("hola")
-        recientes = db.get_recent(10)  # [(id, seña, timestamp), ...]
-        db.clear()
     """
 
     CREATE_TABLE = """
@@ -53,56 +47,64 @@ class TranslationDB:
     def save(self, sena: str) -> int:
         """
         Guarda una seña detectada con el timestamp actual.
-
-        Args:
-            sena: nombre de la seña (ej. "hola").
-
-        Returns:
-            ID de la fila insertada.
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with self._connect() as conn:
-            cursor = conn.execute(
+        conn = self._connect()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
                 "INSERT INTO traducciones (sena, timestamp) VALUES (?, ?)",
                 (sena, timestamp),
             )
-            return cursor.lastrowid
+            conn.commit()
+            return int(cursor.lastrowid) if cursor.lastrowid is not None else 0
+        finally:
+            conn.close()
 
     def get_recent(self, n: int = 10) -> list[tuple]:
         """
         Devuelve las últimas n traducciones en orden cronológico inverso.
-
-        Returns:
-            Lista de tuplas (id, sena, timestamp).
         """
-        with self._connect() as conn:
+        conn = self._connect()
+        try:
             rows = conn.execute(
                 "SELECT id, sena, timestamp FROM traducciones ORDER BY id DESC LIMIT ?",
                 (n,),
             ).fetchall()
-        return rows
+            return rows
+        finally:
+            conn.close()
 
     def get_all(self) -> list[tuple]:
         """Devuelve todas las traducciones en orden cronológico."""
-        with self._connect() as conn:
+        conn = self._connect()
+        try:
             rows = conn.execute(
                 "SELECT id, sena, timestamp FROM traducciones ORDER BY id ASC"
             ).fetchall()
-        return rows
+            return rows
+        finally:
+            conn.close()
 
     def count(self) -> int:
         """Devuelve el número total de traducciones guardadas."""
-        with self._connect() as conn:
+        conn = self._connect()
+        try:
             return conn.execute("SELECT COUNT(*) FROM traducciones").fetchone()[0]
+        finally:
+            conn.close()
 
     def clear(self):
         """
         Elimina todas las traducciones del historial.
-        Útil para limpiar antes de una demo.
         """
-        with self._connect() as conn:
-            conn.execute("DELETE FROM traducciones")
-            conn.execute("DELETE FROM sqlite_sequence WHERE name='traducciones'")
+        conn = self._connect()
+        try:
+            with conn:
+                conn.execute("DELETE FROM traducciones")
+                conn.execute("DELETE FROM sqlite_sequence WHERE name='traducciones'")
+        finally:
+            conn.close()
 
     # ------------------------------------------------------------------
     # Métodos internos
@@ -110,8 +112,12 @@ class TranslationDB:
 
     def _init_db(self):
         """Crea la tabla si no existe. Se llama una sola vez en __init__."""
-        with self._connect() as conn:
-            conn.execute(self.CREATE_TABLE)
+        conn = self._connect()
+        try:
+            with conn:
+                conn.execute(self.CREATE_TABLE)
+        finally:
+            conn.close()
 
     def _connect(self) -> sqlite3.Connection:
         """

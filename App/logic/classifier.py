@@ -18,7 +18,7 @@ import numpy as np
 # Rutas
 # ------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 MODEL_PATH = ROOT / "model" / "lsc_classifier.pkl"
 ENCODER_PATH = ROOT / "model" / "label_encoder.pkl"
 
@@ -120,8 +120,8 @@ class SignClassifier:
             raise RuntimeError(
                 f"No se encontraron los archivos del modelo:\n  {files}\n\n"
                 "Para generarlos, corre desde la raíz del proyecto:\n"
-                "  1. python -m logic.trainer --collect-all   (grabar señas)\n"
-                "  2. python -m logic.trainer --train          (entrenar modelo)\n"
+                "  1. python -m App.logic.trainer --collect-all   (grabar señas)\n"
+                "  2. python -m App.logic.trainer --train          (entrenar modelo)\n"
             )
 
         clf = joblib.load(MODEL_PATH)

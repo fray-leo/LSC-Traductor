@@ -25,9 +25,13 @@ class HandCapture:
                 "Verifica que la webcam esté conectada y no esté en uso por otra app."
             )
 
-        self._mp_hands = mp.solutions.hands
-        self._mp_draw = mp.solutions.drawing_utils
-        self._mp_styles = mp.solutions.drawing_styles
+        import mediapipe.python.solutions.hands as mp_hands
+        import mediapipe.python.solutions.drawing_utils as mp_draw
+        import mediapipe.python.solutions.drawing_styles as mp_styles
+
+        self._mp_hands = mp_hands
+        self._mp_draw = mp_draw
+        self._mp_styles = mp_styles
 
         self._hands = self._mp_hands.Hands(
             static_image_mode=False,
@@ -62,15 +66,16 @@ class HandCapture:
         results = self._hands.process(rgb)
 
         self._last_landmarks = None
+        multi_hand_landmarks = getattr(results, "multi_hand_landmarks", None)
 
-        if results.multi_hand_landmarks:
-            hand = results.multi_hand_landmarks[0]  # solo la primera mano detectada
+        if multi_hand_landmarks:
+            hand = multi_hand_landmarks[0]  # solo la primera mano detectada
 
             # Dibujar sobre el frame
             self._mp_draw.draw_landmarks(
                 frame,
                 hand,
-                self._mp_hands.HAND_CONNECTIONS,
+                list(self._mp_hands.HAND_CONNECTIONS),
                 self._mp_styles.get_default_hand_landmarks_style(),
                 self._mp_styles.get_default_hand_connections_style(),
             )

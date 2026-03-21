@@ -11,8 +11,8 @@ de callbacks que main.py le pasa en el constructor.
 
 import tkinter as tk
 
-from view.components.camera_feed import CameraFeed
-from view.components.translation_panel import TranslationPanel
+from App.view.components.camera_feed import CameraFeed
+from App.view.components.translation_panel import TranslationPanel
 
 
 _BG      = "#1e1e1e"

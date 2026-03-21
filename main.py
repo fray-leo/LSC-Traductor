@@ -9,10 +9,10 @@ Uso:
     python main.py
 """
 
-from logic.capture import HandCapture
-from logic.classifier import SignClassifier
-from logic.database import TranslationDB
-from view.app import App
+from App.logic.capture import HandCapture
+from App.logic.classifier import SignClassifier
+from App.logic.database import TranslationDB
+from App.view.app import App
 
 # ------------------------------------------------------------------
 # Parámetros del loop
