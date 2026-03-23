@@ -149,6 +149,145 @@ def collect_all(n_samples: int = 80, pause_between: int = 2):
 # Entrenamiento
 # ------------------------------------------------------------------
 
+def collect_from_video(video_path: str, sign: str, sample_interval: int = 3):
+    """
+    Extrae landmarks de un video pregrabado y los guarda en data/landmarks/{sign}.csv.
+    Equivalente a collect(), pero usa un archivo de video en lugar de la webcam.
+
+    Args:
+        video_path:      ruta al archivo de video (mp4, mov, avi, etc.).
+        sign:            nombre de la seña (debe coincidir con el nombre del CSV destino).
+        sample_interval: tomar una muestra cada N frames para evitar redundancia.
+                         Con 30fps y sample_interval=3 se obtienen ~10 muestras/segundo.
+    """
+    from logic.capture import HandCapture
+    import mediapipe as mp
+
+    video_path = Path(video_path)
+    if not video_path.exists():
+        print(f"[Error] No se encontró el archivo: {video_path}")
+        return
+
+    csv_path = DATA_DIR / f"{sign}.csv"
+    existing = _count_rows(csv_path)
+    print(f"\n── Procesando video para '{sign}' ──")
+    print(f"   Archivo: {video_path.name}")
+    print(f"   Ya existen {existing} muestras. Se agregarán las nuevas.")
+
+    # Reusar el pipeline de MediaPipe directamente sobre el video
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(
+        static_image_mode=False,
+        max_num_hands=1,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.6,
+    )
+
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        print(f"[Error] No se pudo abrir el video: {video_path}")
+        hands.close()
+        return
+
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    collected = 0
+    frame_idx = 0
+    file_exists = csv_path.exists()
+
+    with open(csv_path, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            header = [f"x{i}" for i in range(HandCapture.VECTOR_SIZE)] + ["label"]
+            writer.writerow(header)
+
+        while True:
+            ok, frame = cap.read()
+            if not ok:
+                break
+
+            # Tomar muestra cada sample_interval frames
+            if frame_idx % sample_interval == 0:
+                frame = cv2.flip(frame, 1)
+                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                results = hands.process(rgb)
+
+                if results.multi_hand_landmarks:
+                    hand = results.multi_hand_landmarks[0]
+                    landmarks = _extract_landmarks_raw(hand, frame.shape)
+                    writer.writerow(landmarks + [sign])
+                    collected += 1
+
+            frame_idx += 1
+
+    cap.release()
+    hands.close()
+
+    total = _count_rows(csv_path)
+    print(f"   Muestras extraídas: {collected}  |  Total acumulado: {total}")
+
+
+def collect_from_video_dir(video_dir: str, sample_interval: int = 3):
+    """
+    Procesa todos los videos en una carpeta. Infiere el nombre de la seña
+    a partir del nombre del archivo (sin extensión).
+
+    Estructura esperada:
+        data/raw/
+            hola.mp4
+            gracias.mp4
+            ...
+
+    Uso:
+        python -m logic.trainer --from-videos
+        python -m logic.trainer --from-videos --video-dir ruta/a/carpeta
+
+    Args:
+        video_dir:       ruta a la carpeta con los videos.
+        sample_interval: tomar una muestra cada N frames.
+    """
+    video_dir = Path(video_dir)
+    if not video_dir.exists():
+        print(f"[Error] No se encontró la carpeta: {video_dir}")
+        return
+
+    extensions = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
+    videos = [f for f in video_dir.iterdir() if f.suffix.lower() in extensions]
+
+    if not videos:
+        print(f"No se encontraron videos en: {video_dir}")
+        return
+
+    print(f"\nProcesando {len(videos)} video(s) en '{video_dir}'...")
+    for video in sorted(videos):
+        sign = video.stem   # nombre del archivo sin extensión
+        collect_from_video(str(video), sign, sample_interval=sample_interval)
+
+    print("\nProcesamiento completado.")
+
+
+def _extract_landmarks_raw(hand_landmarks, frame_shape: tuple) -> list[float]:
+    """
+    Versión standalone de HandCapture._extract_landmarks() para usar
+    sin instanciar HandCapture (evita abrir la webcam al procesar videos).
+    """
+    h, w = frame_shape[:2]
+    points = [
+        (lm.x * w, lm.y * h, lm.z * w)
+        for lm in hand_landmarks.landmark
+    ]
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    bbox_size = max(x_max - x_min, y_max - y_min) or 1.0
+
+    normalized = []
+    for x, y, z in points:
+        normalized.append((x - x_min) / bbox_size)
+        normalized.append((y - y_min) / bbox_size)
+        normalized.append(z / bbox_size)
+    return normalized
+
 def train(test_size: float = 0.2, n_estimators: int = 100):
     """
     Lee todos los CSVs en data/landmarks/, entrena un RandomForestClassifier,
@@ -273,12 +412,18 @@ def _overlay(frame, title: str, subtitle: str, color: tuple, progress: float | N
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LSC Trainer — recolección y entrenamiento")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--collect", action="store_true", help="Modo recolección de datos")
-    group.add_argument("--train", action="store_true", help="Modo entrenamiento del modelo")
-    group.add_argument("--collect-all", action="store_true", help="Recolectar todas las señas del MVP")
+    group.add_argument("--collect",      action="store_true", help="Modo recolección en vivo")
+    group.add_argument("--collect-all",  action="store_true", help="Recolectar todas las señas en vivo")
+    group.add_argument("--from-video",   action="store_true", help="Procesar un video individual")
+    group.add_argument("--from-videos",  action="store_true", help="Procesar todos los videos de una carpeta")
+    group.add_argument("--train",        action="store_true", help="Entrenar el modelo")
 
-    parser.add_argument("--sign", type=str, help="Nombre de la seña a grabar (solo con --collect)")
-    parser.add_argument("--samples", type=int, default=80, help="Muestras por seña (default: 80)")
+    parser.add_argument("--sign",       type=str,            help="Nombre de la seña (con --collect o --from-video)")
+    parser.add_argument("--video",      type=str,            help="Ruta al video (con --from-video)")
+    parser.add_argument("--video-dir",  type=str,            default=str(ROOT / "data" / "raw"),
+                                                             help="Carpeta de videos (con --from-videos, default: data/raw/)")
+    parser.add_argument("--samples",    type=int, default=80,  help="Muestras por seña en vivo (default: 80)")
+    parser.add_argument("--interval",   type=int, default=3,   help="Frames entre muestras al procesar video (default: 3)")
     parser.add_argument("--estimators", type=int, default=100, help="Árboles del RandomForest (default: 100)")
 
     args = parser.parse_args()
@@ -290,6 +435,14 @@ if __name__ == "__main__":
 
     elif args.collect_all:
         collect_all(n_samples=args.samples)
+
+    elif args.from_video:
+        if not args.sign or not args.video:
+            parser.error("--from-video requiere --sign <seña> y --video <ruta>")
+        collect_from_video(args.video, args.sign, sample_interval=args.interval)
+
+    elif args.from_videos:
+        collect_from_video_dir(args.video_dir, sample_interval=args.interval)
 
     elif args.train:
         train(n_estimators=args.estimators)
