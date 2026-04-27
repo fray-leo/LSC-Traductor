@@ -84,7 +84,7 @@ lsc-traductor/
 
 ---
 
-## Instalación
+## Instalación y Uso
 
 ### 1. Clonar el repositorio
 
@@ -110,8 +110,76 @@ pip install -r requirements.txt
 ### 4. Ejecutar la aplicación
 
 ```bash
-python src/app.py
+python main.py
 ```
+
+---
+
+## Funcionalidades de la Interfaz
+
+La aplicación cuenta con dos botones principales:
+
+| Botón | Función |
+| --- | --- |
+| **＋ Grabar Nueva Seña** | Abre un diálogo para grabar nuevas muestras de señas y agregarlas al dataset de entrenamiento |
+| **Limpiar** (en el panel derecho) | Borra el historial de traducciones guardadas |
+
+### Grabar Nuevas Señas
+
+1. Haz clic en **"＋ Grabar Nueva Seña"**
+2. Ingresa el nombre de la seña (ej: "hola", "gracias")
+3. Configura el número de muestras a capturar (mínimo 10)
+4. Presiona **"▶ Iniciar Grabación"**
+5. Después de la cuenta regresiva, mantén la seña visible frente a la cámara
+6. El sistema capturará automáticamente las muestras
+7. Al finalizar, las muestras se guardan en `data/landmarks/{nombre}.csv`
+
+> **Nota:** Para que los cambios surtan efecto en el reconocimiento, debes re-entrenar el modelo después de agregar nuevas señas:
+> ```bash
+> python -m App.logic.trainer --train
+> ```
+
+---
+
+## Crear Ejecutable (.exe / .app / binario)
+
+Para distribuir la aplicación como un programa independiente:
+
+### Opción A: Ejecutable único (recomendado para distribución)
+
+```bash
+python build.py --onefile
+```
+
+Esto crea un solo archivo ejecutable en `dist/LSC_Traductor.exe` (Windows) o `dist/LSC_Traductor` (Linux/Mac).
+
+### Opción B: Carpeta con todos los archivos
+
+```bash
+python build.py
+```
+
+Esto crea una carpeta `dist/LSC_Traductor/` con el ejecutable y todas las dependencias incluidas.
+
+### Requisitos para compilar
+
+- PyInstaller (ya incluido en `requirements.txt`)
+- Espacio en disco: ~200MB para el proceso de compilación
+
+### Notas por plataforma
+
+| Plataforma | Formato | Notas |
+| --- | --- | --- |
+| Windows | `.exe` | Funciona sin Python instalado si usas `--onefile` |
+| macOS | `.app` | Puede requerir permisos de cámara adicionales |
+| Linux | Binario | Asegúrate de tener las librerías gráficas necesarias |
+
+### Distribución
+
+Si creas un ejecutable `--onefile`, ten en cuenta:
+- El usuario final **no necesita instalar Python**
+- Debes distribuir también las carpetas `model/` y `data/` con el modelo entrenado
+- El primer inicio puede ser más lento (el ejecutable se descomprime en memoria)
 
 ---
 

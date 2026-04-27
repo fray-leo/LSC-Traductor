@@ -13,6 +13,7 @@ from App.logic.capture import HandCapture
 from App.logic.classifier import SignClassifier
 from App.logic.database import TranslationDB
 from App.view.app import App
+from App.view.components.recording_dialog import RecordingDialog
 
 # ------------------------------------------------------------------
 # Parámetros del loop
@@ -41,23 +42,50 @@ def main():
 
     db = TranslationDB()
 
+    # ── Función para abrir diálogo de grabación ────────────────────────
+    def open_recording_dialog():
+        """Abre el diálogo modal para grabar nuevas señas."""
+        # Pausar temporalmente el loop de traducción
+        nonlocal _loop_paused
+        _loop_paused = True
+        
+        def on_save(sign_name, count):
+            """Callback cuando se guardan muestras exitosamente."""
+            print(f"[Info] Se agregaron {count} muestras para '{sign_name}'")
+            # Opcional: re-entrenar el modelo automáticamente
+            # _retrain_model()
+        
+        dialog = RecordingDialog(app._root, on_save=on_save)
+        dialog.start()
+        
+        # Reanudar el loop
+        _loop_paused = False
+        # Programar continuación del loop
+        app.schedule(LOOP_INTERVAL_MS, loop)
+
     # ── Inicializar interfaz ───────────────────────────────────────────
     app = App(
         on_close=cap.release,
         on_clear=db.clear,
+        on_record=open_recording_dialog,
     )
 
     # ── Estado del loop ────────────────────────────────────────────────
     buffer: list[str]   = []      # últimas N predicciones crudas
     last_saved: str     = ""      # última seña guardada en la BD
     frame_count: int    = 0       # contador de frames para tareas periódicas
+    _loop_paused: bool  = False   # flag para pausar durante grabación
 
     # Cargar historial inicial
     app.update_history(_format_history(db.get_recent()))
 
     # ── Loop principal ─────────────────────────────────────────────────
     def loop():
-        nonlocal last_saved, frame_count
+        nonlocal last_saved, frame_count, _loop_paused
+
+        # Si está pausado (durante grabación), no procesar frames
+        if _loop_paused:
+            return
 
         # 1. Leer frame de la cámara
         if not cap.read():

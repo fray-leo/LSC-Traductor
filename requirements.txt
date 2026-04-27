@@ -8,3 +8,6 @@ scikit-learn==1.4.2
 Pillow==10.3.0
 joblib==1.4.0
 numpy==1.26.4
+
+# Para crear ejecutables (.exe, .app, binarios)
+pyinstaller>=6.0.0
