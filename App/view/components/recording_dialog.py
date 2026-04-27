@@ -246,11 +246,16 @@ class RecordingDialog:
         
         # Verificar si ya existe la seña
         csv_path = DATA_DIR / f"{sign_name}.csv"
+        existing_count = 0
         if csv_path.exists():
+            with open(csv_path, 'r') as f:
+                existing_count = sum(1 for _ in f) - 1  # Restar header
+            
             confirm = messagebox.askyesno(
                 "Seña existente",
-                f"La seña '{sign_name}' ya tiene datos guardados.\n\n"
-                f"¿Deseas agregar más muestras?",
+                f"La seña '{sign_name}' ya tiene {existing_count} muestras guardadas.\n\n"
+                f"¿Deseas agregar {n_samples} muestras adicionales?\n\n"
+                f"Esto mejorará el reconocimiento de esta seña.",
                 parent=self._dialog
             )
             if not confirm:
@@ -260,6 +265,7 @@ class RecordingDialog:
         self._collected = 0
         self._total_samples = n_samples
         self._sign_name = sign_name
+        self._existing_count = existing_count
         
         # Actualizar UI
         self._start_btn.config(text="⏹ Detener", bg="#f59e0b")
@@ -346,10 +352,12 @@ class RecordingDialog:
             self._cap = None
             
         if self._collected > 0:
+            total_samples = self._existing_count + self._collected
             messagebox.showinfo(
                 "Éxito",
-                f"Se guardaron {self._collected} muestras para '{self._sign_name}'.\n\n"
-                f"Total acumulado: {self._count_existing()} muestras.",
+                f"Se guardaron {self._collected} muestras adicionales para '{self._sign_name}'.\n\n"
+                f"Total acumulado: {total_samples} muestras.\n\n"
+                f"{'(Datos existentes: ' + str(self._existing_count) + ')' if self._existing_count > 0 else ''}",
                 parent=self._dialog
             )
             if callable(self._on_save):

@@ -139,6 +139,67 @@ La aplicación cuenta con dos botones principales:
 > python -m App.logic.trainer --train
 > ```
 
+### Ampliar Datos de una Seña Existente
+
+El sistema maneja automáticamente los conflictos cuando quieres agregar más datos a una seña que ya existe:
+
+**Ejemplo: Quieres mejorar el reconocimiento de "gracias"**
+
+1. Haces clic en "＋ Grabar Nueva Seña"
+2. Escribes `gracias` como nombre
+3. El sistema detecta que ya existen datos y muestra:
+   ```
+   La seña 'gracias' ya tiene 50 muestras guardadas.
+   
+   ¿Deseas agregar 50 muestras adicionales?
+   
+   Esto mejorará el reconocimiento de esta seña.
+   ```
+4. Confirmas con "Sí"
+5. Grabas las nuevas muestras
+6. Mensaje final:
+   ```
+   Se guardaron 50 muestras adicionales para 'gracias'.
+   
+   Total acumulado: 100 muestras.
+   (Datos existentes: 50)
+   ```
+
+**Beneficios:**
+- ✅ **Mejor generalización**: El modelo aprende variaciones de la misma seña
+- ✅ **Más robustez**: Funciona mejor con diferentes usuarios e iluminación
+- ✅ **Sin sobrescritura**: Los datos nuevos se anexan, no reemplazan los existentes
+
+### Gestión del Dataset (Línea de Comandos)
+
+Puedes administrar los datos de entrenamiento con herramientas CLI:
+
+```bash
+# Listar todas las señas y su conteo
+python -m App.logic.dataset_manager list
+
+# Ver estadísticas detalladas
+python -m App.logic.dataset_manager stats
+
+# Eliminar todos los datos de una seña específica
+python -m App.logic.dataset_manager clear gracias
+```
+
+**Ejemplo de salida:**
+```
+$ python -m App.logic.dataset_manager list
+Seña                 | Muestras    
+--------------------------------
+gracias              | 100       
+hola                 | 75        
+familia              | 50        
+
+$ python -m App.logic.dataset_manager stats
+Total Señas: 3
+Total Muestras: 225
+Promedio por seña: 75.00
+```
+
 ---
 
 ## Crear Ejecutable (.exe / .app / binario)
