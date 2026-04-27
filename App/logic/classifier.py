@@ -55,13 +55,13 @@ class SignClassifier:
         Predice la seña correspondiente a un vector de landmarks.
 
         Args:
-            landmarks: lista de 63 floats generada por HandCapture.get_landmarks().
+            landmarks: lista de 603 floats generada por HandCapture.get_landmarks().
 
         Returns:
             Nombre de la seña (ej. "hola") si la confianza supera el umbral,
             o UNCERTAIN ("...") en caso contrario.
         """
-        if not landmarks or len(landmarks) != 63:
+        if not landmarks or len(landmarks) != 603:
             return self.UNCERTAIN
 
         X = np.array(landmarks, dtype=np.float32).reshape(1, -1)
@@ -84,7 +84,7 @@ class SignClassifier:
             Tupla (nombre_de_la_seña, confianza) donde confianza ∈ [0.0, 1.0].
             Si no supera el umbral, devuelve (UNCERTAIN, confianza).
         """
-        if not landmarks or len(landmarks) != 63:
+        if not landmarks or len(landmarks) != 603:
             return self.UNCERTAIN, 0.0
 
         X = np.array(landmarks, dtype=np.float32).reshape(1, -1)

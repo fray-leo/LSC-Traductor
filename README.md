@@ -24,11 +24,38 @@ Las personas sordas en Colombia enfrentan barreras de comunicación constantes c
 | Componente | Tecnología |
 | --- | --- |
 | Lenguaje | Python 3.10+ |
-| Detección de manos | [MediaPipe](https://mediapipe.dev/) |
+| Detección de manos y pose | [MediaPipe Holistic](https://mediapipe.dev/) |
 | Clasificación de señas | scikit-learn (RandomForest / SVM) |
 | Interfaz | tkinter |
 | Base de datos | SQLite3 |
 | Control de versiones | Git / GitHub |
+
+---
+
+## Cambios recientes: MediaPipe Holistic
+
+Este proyecto ha sido actualizado para usar **MediaPipe Holistic** en lugar de MediaPipe Hands, lo que permite:
+
+- **Detección de ambas manos simultáneamente** (izquierda y derecha)
+- **Referencia corporal completa** mediante landmarks del torso (hombros, caderas)
+- **Normalización basada en el torso**: las posiciones de las manos se calculan relativas al centro del cuerpo, usando la distancia entre hombros como escala
+- **Mayor contexto espacial** para interpretar señas que involucran movimiento del brazo o posición relativa al cuerpo
+
+### Vector de landmarks (603 valores)
+
+El nuevo sistema extrae un vector de 603 floats organizados así:
+
+| Componente | Landmarks | Valores |
+| --- | --- | --- |
+| Mano izquierda | 21 × 3 (x, y, z) | 63 |
+| Mano derecha | 21 × 3 (x, y, z) | 63 |
+| Pose corporal | 25 × 3 (x, y, z) | 75 |
+| **Total** | **201 × 3** | **603** |
+
+La normalización usa los hombros como referencia, haciendo el vector invariante a:
+- La distancia del usuario a la cámara
+- La posición del cuerpo en el frame
+- El tamaño aparente de la persona
 
 ---
 

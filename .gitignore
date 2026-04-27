@@ -1,36 +1,48 @@
-# ── Entorno virtual ───────────────────────────────────────────────
-venv/
-.venv/
-env/
-
-# ── Python ────────────────────────────────────────────────────────
+```
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
 .Python
+env/
+venv/
+.venv/
+.ENV
+.python-version
+.pytest_cache/
+.mypy_cache/
 
-# ── Modelo entrenado (se regenera con trainer.py) ─────────────────
-model/lsc_classifier.pkl
-model/label_encoder.pkl
+# Build artifacts
+build/
+dist/
+*.egg-info/
 
-# ── Base de datos local ───────────────────────────────────────────
-db/historial.db
+# Logs
+*.log
 
-# ── Datos crudos (videos — pueden ser pesados) ────────────────────
-data/raw/
+# Environment
+.env
+.env.local
+*.env*
 
-# ── IDEs ──────────────────────────────────────────────────────────
+# Editors
 .vscode/
 .idea/
-*.suo
-*.user
+*.swp
+*.swo
+*.tmp
 
-# ── Sistema operativo ─────────────────────────────────────────────
+# OS
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# ── Miscelánea ────────────────────────────────────────────────────
-*.log
-.env
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Distribution / packaging
+*.tar.gz
+*.whl
+```

@@ -29,7 +29,7 @@ from App.logic.capture import HandCapture
 # ------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = ROOT / "Data" / "landmarks"
+DATA_DIR = ROOT / "data" / "landmarks"
 MODEL_DIR = ROOT / "model"
 MODEL_PATH = MODEL_DIR / "lsc_classifier.pkl"
 ENCODER_PATH = MODEL_DIR / "label_encoder.pkl"
@@ -160,7 +160,7 @@ def collect_from_video(video_path: str, sign: str, sample_interval: int = 3):
         sample_interval: tomar una muestra cada N frames para evitar redundancia.
                          Con 30fps y sample_interval=3 se obtienen ~10 muestras/segundo.
     """
-    from logic.capture import HandCapture
+    from App.logic.capture import HandCapture
     import mediapipe as mp
 
     video_path = Path(video_path)
@@ -174,11 +174,13 @@ def collect_from_video(video_path: str, sign: str, sample_interval: int = 3):
     print(f"   Archivo: {video_path.name}")
     print(f"   Ya existen {existing} muestras. Se agregarán las nuevas.")
 
-    # Reusar el pipeline de MediaPipe directamente sobre el video
-    mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(
+    # Reusar el pipeline de MediaPipe Holistic directamente sobre el video
+    mp_holistic = mp.solutions.holistic
+    holistic = mp_holistic.Holistic(
         static_image_mode=False,
-        max_num_hands=1,
+        model_complexity=1,
+        smooth_landmarks=True,
+        enable_segmentation=False,
         min_detection_confidence=0.7,
         min_tracking_confidence=0.6,
     )
@@ -186,7 +188,7 @@ def collect_from_video(video_path: str, sign: str, sample_interval: int = 3):
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
         print(f"[Error] No se pudo abrir el video: {video_path}")
-        hands.close()
+        holistic.close()
         return
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -209,18 +211,17 @@ def collect_from_video(video_path: str, sign: str, sample_interval: int = 3):
             if frame_idx % sample_interval == 0:
                 frame = cv2.flip(frame, 1)
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                results = hands.process(rgb)
+                results = holistic.process(rgb)
 
-                if results.multi_hand_landmarks:
-                    hand = results.multi_hand_landmarks[0]
-                    landmarks = _extract_landmarks_raw(hand, frame.shape)
+                if results.pose_landmarks and (results.left_hand_landmarks or results.right_hand_landmarks):
+                    landmarks = _extract_landmarks_raw(results, frame.shape)
                     writer.writerow(landmarks + [sign])
                     collected += 1
 
             frame_idx += 1
 
     cap.release()
-    hands.close()
+    holistic.close()
 
     total = _count_rows(csv_path)
     print(f"   Muestras extraídas: {collected}  |  Total acumulado: {total}")
@@ -265,27 +266,68 @@ def collect_from_video_dir(video_dir: str, sample_interval: int = 3):
     print("\nProcesamiento completado.")
 
 
-def _extract_landmarks_raw(hand_landmarks, frame_shape: tuple) -> list[float]:
+def _extract_landmarks_raw(results, frame_shape: tuple) -> list[float]:
     """
     Versión standalone de HandCapture._extract_landmarks() para usar
     sin instanciar HandCapture (evita abrir la webcam al procesar videos).
+    Usa normalización basada en el torso (hombros) para consistencia con
+    la captura en tiempo real.
+    
+    Args:
+        results: objeto MediaPipe HolisticResults con todos los landmarks.
+        frame_shape: (height, width, channels) del frame actual.
+    
+    Returns:
+        Lista de 603 floats normalizados.
     """
+    from App.logic.capture import HandCapture
+    
     h, w = frame_shape[:2]
-    points = [
-        (lm.x * w, lm.y * h, lm.z * w)
-        for lm in hand_landmarks.landmark
-    ]
-    xs = [p[0] for p in points]
-    ys = [p[1] for p in points]
-    x_min, x_max = min(xs), max(xs)
-    y_min, y_max = min(ys), max(ys)
-    bbox_size = max(x_max - x_min, y_max - y_min) or 1.0
-
     normalized = []
-    for x, y, z in points:
-        normalized.append((x - x_min) / bbox_size)
-        normalized.append((y - y_min) / bbox_size)
-        normalized.append(z / bbox_size)
+
+    # Obtener puntos de referencia del torso para normalización
+    pose_landmarks = results.pose_landmarks.landmark if results.pose_landmarks else None
+    if not pose_landmarks:
+        return []
+    
+    # Calcular escala basada en la distancia entre hombros
+    shoulder_left = pose_landmarks[HandCapture.SHOULDER_LEFT]
+    shoulder_right = pose_landmarks[HandCapture.SHOULDER_RIGHT]
+    shoulder_distance = ((shoulder_right.x - shoulder_left.x) ** 2 + 
+                        (shoulder_right.y - shoulder_left.y) ** 2) ** 0.5
+    scale = shoulder_distance if shoulder_distance > 0 else 1.0
+    
+    # Centro del torso (punto medio entre hombros)
+    torso_center_x = (shoulder_left.x + shoulder_right.x) / 2
+    torso_center_y = (shoulder_left.y + shoulder_right.y) / 2
+
+    # Extraer landmarks de mano izquierda (si existe)
+    if results.left_hand_landmarks:
+        for lm in results.left_hand_landmarks.landmark:
+            nx = (lm.x - torso_center_x) / scale
+            ny = (lm.y - torso_center_y) / scale
+            nz = lm.z / scale
+            normalized.extend([nx, ny, nz])
+    else:
+        normalized.extend([0.0] * (HandCapture.NUM_HAND_LANDMARKS * 3))
+
+    # Extraer landmarks de mano derecha (si existe)
+    if results.right_hand_landmarks:
+        for lm in results.right_hand_landmarks.landmark:
+            nx = (lm.x - torso_center_x) / scale
+            ny = (lm.y - torso_center_y) / scale
+            nz = lm.z / scale
+            normalized.extend([nx, ny, nz])
+    else:
+        normalized.extend([0.0] * (HandCapture.NUM_HAND_LANDMARKS * 3))
+
+    # Extraer landmarks de pose completos
+    for lm in pose_landmarks:
+        nx = (lm.x - torso_center_x) / scale
+        ny = (lm.y - torso_center_y) / scale
+        nz = lm.z / scale
+        normalized.extend([nx, ny, nz])
+
     return normalized
 
 def train(test_size: float = 0.2, n_estimators: int = 100):
