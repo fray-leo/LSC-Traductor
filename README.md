@@ -24,11 +24,38 @@ Las personas sordas en Colombia enfrentan barreras de comunicación constantes c
 | Componente | Tecnología |
 | --- | --- |
 | Lenguaje | Python 3.10+ |
-| Detección de manos | [MediaPipe](https://mediapipe.dev/) |
+| Detección de manos y pose | [MediaPipe Holistic](https://mediapipe.dev/) |
 | Clasificación de señas | scikit-learn (RandomForest / SVM) |
 | Interfaz | tkinter |
 | Base de datos | SQLite3 |
 | Control de versiones | Git / GitHub |
+
+---
+
+## Cambios recientes: MediaPipe Holistic
+
+Este proyecto ha sido actualizado para usar **MediaPipe Holistic** en lugar de MediaPipe Hands, lo que permite:
+
+- **Detección de ambas manos simultáneamente** (izquierda y derecha)
+- **Referencia corporal completa** mediante landmarks del torso (hombros, caderas)
+- **Normalización basada en el torso**: las posiciones de las manos se calculan relativas al centro del cuerpo, usando la distancia entre hombros como escala
+- **Mayor contexto espacial** para interpretar señas que involucran movimiento del brazo o posición relativa al cuerpo
+
+### Vector de landmarks (603 valores)
+
+El nuevo sistema extrae un vector de 603 floats organizados así:
+
+| Componente | Landmarks | Valores |
+| --- | --- | --- |
+| Mano izquierda | 21 × 3 (x, y, z) | 63 |
+| Mano derecha | 21 × 3 (x, y, z) | 63 |
+| Pose corporal | 25 × 3 (x, y, z) | 75 |
+| **Total** | **201 × 3** | **603** |
+
+La normalización usa los hombros como referencia, haciendo el vector invariante a:
+- La distancia del usuario a la cámara
+- La posición del cuerpo en el frame
+- El tamaño aparente de la persona
 
 ---
 
@@ -57,7 +84,7 @@ lsc-traductor/
 
 ---
 
-## Instalación
+## Instalación y Uso
 
 ### 1. Clonar el repositorio
 
@@ -83,8 +110,137 @@ pip install -r requirements.txt
 ### 4. Ejecutar la aplicación
 
 ```bash
-python src/app.py
+python main.py
 ```
+
+---
+
+## Funcionalidades de la Interfaz
+
+La aplicación cuenta con dos botones principales:
+
+| Botón | Función |
+| --- | --- |
+| **＋ Grabar Nueva Seña** | Abre un diálogo para grabar nuevas muestras de señas y agregarlas al dataset de entrenamiento |
+| **Limpiar** (en el panel derecho) | Borra el historial de traducciones guardadas |
+
+### Grabar Nuevas Señas
+
+1. Haz clic en **"＋ Grabar Nueva Seña"**
+2. Ingresa el nombre de la seña (ej: "hola", "gracias")
+3. Configura el número de muestras a capturar (mínimo 10)
+4. Presiona **"▶ Iniciar Grabación"**
+5. Después de la cuenta regresiva, mantén la seña visible frente a la cámara
+6. El sistema capturará automáticamente las muestras
+7. Al finalizar, las muestras se guardan en `data/landmarks/{nombre}.csv`
+
+> **Nota:** Para que los cambios surtan efecto en el reconocimiento, debes re-entrenar el modelo después de agregar nuevas señas:
+> ```bash
+> python -m App.logic.trainer --train
+> ```
+
+### Ampliar Datos de una Seña Existente
+
+El sistema maneja automáticamente los conflictos cuando quieres agregar más datos a una seña que ya existe:
+
+**Ejemplo: Quieres mejorar el reconocimiento de "gracias"**
+
+1. Haces clic en "＋ Grabar Nueva Seña"
+2. Escribes `gracias` como nombre
+3. El sistema detecta que ya existen datos y muestra:
+   ```
+   La seña 'gracias' ya tiene 50 muestras guardadas.
+   
+   ¿Deseas agregar 50 muestras adicionales?
+   
+   Esto mejorará el reconocimiento de esta seña.
+   ```
+4. Confirmas con "Sí"
+5. Grabas las nuevas muestras
+6. Mensaje final:
+   ```
+   Se guardaron 50 muestras adicionales para 'gracias'.
+   
+   Total acumulado: 100 muestras.
+   (Datos existentes: 50)
+   ```
+
+**Beneficios:**
+- ✅ **Mejor generalización**: El modelo aprende variaciones de la misma seña
+- ✅ **Más robustez**: Funciona mejor con diferentes usuarios e iluminación
+- ✅ **Sin sobrescritura**: Los datos nuevos se anexan, no reemplazan los existentes
+
+### Gestión del Dataset (Línea de Comandos)
+
+Puedes administrar los datos de entrenamiento con herramientas CLI:
+
+```bash
+# Listar todas las señas y su conteo
+python -m App.logic.dataset_manager list
+
+# Ver estadísticas detalladas
+python -m App.logic.dataset_manager stats
+
+# Eliminar todos los datos de una seña específica
+python -m App.logic.dataset_manager clear gracias
+```
+
+**Ejemplo de salida:**
+```
+$ python -m App.logic.dataset_manager list
+Seña                 | Muestras    
+--------------------------------
+gracias              | 100       
+hola                 | 75        
+familia              | 50        
+
+$ python -m App.logic.dataset_manager stats
+Total Señas: 3
+Total Muestras: 225
+Promedio por seña: 75.00
+```
+
+---
+
+## Crear Ejecutable (.exe / .app / binario)
+
+Para distribuir la aplicación como un programa independiente:
+
+### Opción A: Ejecutable único (recomendado para distribución)
+
+```bash
+python build.py --onefile
+```
+
+Esto crea un solo archivo ejecutable en `dist/LSC_Traductor.exe` (Windows) o `dist/LSC_Traductor` (Linux/Mac).
+
+### Opción B: Carpeta con todos los archivos
+
+```bash
+python build.py
+```
+
+Esto crea una carpeta `dist/LSC_Traductor/` con el ejecutable y todas las dependencias incluidas.
+
+### Requisitos para compilar
+
+- PyInstaller (ya incluido en `requirements.txt`)
+- Espacio en disco: ~200MB para el proceso de compilación
+
+### Notas por plataforma
+
+| Plataforma | Formato | Notas |
+| --- | --- | --- |
+| Windows | `.exe` | Funciona sin Python instalado si usas `--onefile` |
+| macOS | `.app` | Puede requerir permisos de cámara adicionales |
+| Linux | Binario | Asegúrate de tener las librerías gráficas necesarias |
+
+### Distribución
+
+Si creas un ejecutable `--onefile`, ten en cuenta:
+- El usuario final **no necesita instalar Python**
+- Debes distribuir también las carpetas `model/` y `data/` con el modelo entrenado
+- El primer inicio puede ser más lento (el ejecutable se descomprime en memoria)
 
 ---
 

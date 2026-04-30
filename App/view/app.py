@@ -2,7 +2,7 @@
 view/app.py
 
 Ventana principal de la aplicación. Organiza el layout en dos columnas:
-  - Izquierda: feed de la cámara (CameraFeed)
+  - Izquierda: feed de la cámara (CameraFeed) con controles de grabación
   - Derecha:   panel de traducción (TranslationPanel)
 
 No importa nada de logic/ — recibe todo lo que necesita a través
@@ -28,6 +28,7 @@ class App:
         app = App(
             on_close=cap.release,
             on_clear=db.clear,
+            on_record=open_recording_dialog,
         )
         app.update_frame(frame)
         app.update_translation("hola", confidence=0.91)
@@ -41,15 +42,18 @@ class App:
     PANEL_WIDTH   = 320
     MIN_HEIGHT    = 540
 
-    def __init__(self, on_close=None, on_clear=None):
+    def __init__(self, on_close=None, on_clear=None, on_record=None):
         """
         Args:
             on_close: callable invocado al cerrar la ventana.
                       Debe liberar la cámara y cualquier otro recurso.
             on_clear: callable invocado al pulsar "Limpiar historial".
                       Debe borrar la base de datos.
+            on_record: callable invocado al pulsar "Grabar Nueva Seña".
+                       Debe abrir el diálogo de grabación.
         """
         self._on_close = on_close
+        self._on_record = on_record
 
         self._root = tk.Tk()
         self._root.title(self.WINDOW_TITLE)
@@ -130,16 +134,36 @@ class App:
         )
         self._feed.pack()
 
-        # Etiqueta de estado bajo la cámara
+        # ── Botones de control bajo la cámara ──────────────────────────
+        controls = tk.Frame(left, bg="black", pady=8)
+        controls.pack(fill="x")
+
+        # Botón para grabar nueva seña
+        self._record_btn = tk.Button(
+            controls,
+            text="＋ Grabar Nueva Seña",
+            command=self._handle_record,
+            bg="#2563eb",
+            fg="white",
+            font=("Arial", 10, "bold"),
+            relief="flat",
+            padx=12,
+            pady=6,
+            cursor="hand2",
+            activebackground="#1d4ed8",
+            activeforeground="white",
+        )
+        self._record_btn.pack(side="left", padx=8)
+
+        # Etiqueta de estado
         self._status_label = tk.Label(
-            left,
+            controls,
             text="Muestra una seña frente a la cámara",
             bg="black",
             fg=_FG_BAR,
-            font=("Arial", 10),
-            pady=6,
+            font=("Arial", 9),
         )
-        self._status_label.pack(fill="x")
+        self._status_label.pack(side="right", padx=8)
 
         # ── Divisor vertical ──────────────────────────────────────────
         tk.Frame(main, bg="#2d2d2d", width=1).pack(side="left", fill="y")
@@ -170,6 +194,11 @@ class App:
             padx=10,
         )
         self._statusbar_label.pack(side="left", fill="y")
+
+    def _handle_record(self):
+        """Maneja el clic en el botón de grabar nueva seña."""
+        if callable(self._on_record):
+            self._on_record()
 
     # ------------------------------------------------------------------
     # Eventos
