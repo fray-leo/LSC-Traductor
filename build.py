@@ -89,13 +89,20 @@ def build_executable(onefile=False):
         "--onefile" if onefile else "--onedir",
         console_flag,
         "--add-data", f"{Path('App')}:{Path('App')}",  # Incluir paquete App
+        "--add-data", f"{Path('model')}:{Path('model')}" if Path('model').exists() else "",
+        "--add-data", f"{Path('data')}:{Path('data')}" if Path('data').exists() else "",
+        "--add-data", f"{Path('db')}:{Path('db')}" if Path('db').exists() else "",
         "--hidden-import", "mediapipe",
         "--hidden-import", "sklearn",
         "--hidden-import", "cv2",
+        "--hidden-import", "PIL",
         "--collect-all", "mediapipe",  # Incluir todos los recursos de MediaPipe
         "--clean",
         "main.py",
     ]
+    
+    # Filtrar opciones vacías
+    options = [opt for opt in options if opt]
     
     # Agregar ícono si existe
     icon = get_icon_path()
