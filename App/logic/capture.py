@@ -43,9 +43,9 @@ class HandCapture:
                 "Verifica que la webcam esté conectada y no esté en uso por otra app."
             )
 
-        import mediapipe.python.solutions.holistic as mp_holistic
-        import mediapipe.python.solutions.drawing_utils as mp_draw
-        import mediapipe.python.solutions.drawing_styles as mp_styles
+        import mediapipe.solutions.holistic as mp_holistic
+        import mediapipe.solutions.drawing_utils as mp_draw
+        import mediapipe.solutions.drawing_styles as mp_styles
 
         self._mp_holistic = mp_holistic
         self._mp_draw = mp_draw
