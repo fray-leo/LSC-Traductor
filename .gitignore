@@ -1,4 +1,1 @@
-```
-# Jekyll
-.nojekyll
-```
+Nothing needs to be added to .gitignore since the changes only include build scripts (.sh, .bat), documentation files (.md, .html), and a Python build file (.py) - all of which are source/config files that should be tracked in version control. There are no build artifacts, dependency directories, or temporary files in the change list that would warrant adding ignore rules.

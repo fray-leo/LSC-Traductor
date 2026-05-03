@@ -499,25 +499,47 @@ git push origin feature/nombre-de-tu-tarea
                     <h4>🪟 Windows</h4>
                     <p>Ejecutable único (.exe) - No requiere Python instalado</p>
                     <p><strong>Tamaño:</strong> ~150 MB</p>
-                    <a href="#" class="download-btn">Descargar para Windows</a>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Próximamente en Releases</em></p>
+                    <a href="https://github.com/[usuario]/lsc-traductor/releases/latest/download/LSC_Traductor_Windows.exe" class="download-btn">Descargar para Windows</a>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Versión disponible en GitHub Releases</em></p>
                 </div>
 
                 <div class="feature-card">
                     <h4>🍎 macOS</h4>
                     <p>Aplicación (.app) - Compatible con macOS 10.15+</p>
                     <p><strong>Tamaño:</strong> ~180 MB</p>
-                    <a href="#" class="download-btn">Descargar para macOS</a>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Próximamente en Releases</em></p>
+                    <a href="https://github.com/[usuario]/lsc-traductor/releases/latest/download/LSC_Traductor_macOS.dmg" class="download-btn">Descargar para macOS</a>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Versión disponible en GitHub Releases</em></p>
                 </div>
 
                 <div class="feature-card">
                     <h4>🐧 Linux</h4>
                     <p>Binario ejecutable - Requiere librerías gráficas</p>
                     <p><strong>Tamaño:</strong> ~140 MB</p>
-                    <a href="#" class="download-btn">Descargar para Linux</a>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Próximamente en Releases</em></p>
+                    <a href="https://github.com/[usuario]/lsc-traductor/releases/latest/download/LSC_Traductor_Linux" class="download-btn">Descargar para Linux</a>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Versión disponible en GitHub Releases</em></p>
                 </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 2rem;">
+                <h3>🔨 Crear Tu Propio Ejecutable</h3>
+                <p>Si prefieres compilar el ejecutable tú mismo desde el código fuente:</p>
+                <pre><code># Clonar el repositorio
+git clone https://github.com/[usuario]/lsc-traductor.git
+cd lsc-traductor
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Compilar para tu plataforma actual
+python build.py --onefile
+
+# El ejecutable se creará en la carpeta dist/</code></pre>
+                <p style="margin-top: 1rem;"><strong>Scripts disponibles:</strong></p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><code>build_linux.sh</code> - Para Linux (bash)</li>
+                    <li><code>build_windows.bat</code> - Para Windows (batch)</li>
+                    <li><code>build.py</code> - Script multiplataforma en Python</li>
+                </ul>
             </div>
 
             <h3>📝 Notas Importantes</h3>
