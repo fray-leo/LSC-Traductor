@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSC Traductor - Documentación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+
+        nav ul li {
+            margin: 0 1rem;
+        }
+
+        nav ul li a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #f0f0f0;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        section h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        section h3 {
+            color: #764ba2;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .highlight-box h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        table th, table td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+        }
+
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 1rem 0;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .tech-badge {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #667eea;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-weight: 600;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav ul li {
+                margin: 0.5rem 0;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🖐️ LSC Traductor</h1>
+        <p>Lengua de Señas Colombiana a Texto en Tiempo Real</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#descripcion">Descripción</a></li>
+            <li><a href="#instalacion">Instalación</a></li>
+            <li><a href="#documentacion">Documentación</a></li>
+            <li><a href="#descarga">Descargar</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Descripción Section -->
+        <section id="descripcion">
+            <h2>📋 Descripción del Proyecto</h2>
+            
+            <p><strong>LSC Traductor</strong> es una aplicación que usa visión por computador para reconocer señas de la <strong>Lengua de Señas Colombiana (LSC)</strong> a través de la cámara web y traducirlas a texto en tiempo real.</p>
+
+            <div class="highlight-box">
+                <h3>🎯 Problema que Resuelve</h3>
+                <p>Las personas sordas en Colombia enfrentan barreras de comunicación constantes con personas oyentes que no conocen la LSC. No existe actualmente una herramienta accesible y gratuita que traduzca LSC a texto en tiempo real. Este proyecto es un primer paso hacia cerrar esa brecha.</p>
+            </div>
+
+            <h3>Tecnologías Utilizadas</h3>
+            <div style="margin: 1rem 0;">
+                <span class="tech-badge">Python 3.10+</span>
+                <span class="tech-badge">MediaPipe Holistic</span>
+                <span class="tech-badge">scikit-learn</span>
+                <span class="tech-badge">OpenCV</span>
+                <span class="tech-badge">tkinter</span>
+                <span class="tech-badge">SQLite3</span>
+            </div>
+
+            <h3>Características Principales</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>👐 Detección de Ambas Manos</h4>
+                    <p>Reconocimiento simultáneo de mano izquierda y derecha usando MediaPipe Holistic.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📍 Referencia Corporal Completa</h4>
+                    <p>Landmarks del torso (hombros, caderas) para contexto espacial completo.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚖️ Normalización Inteligente</h4>
+                    <p>Posiciones relativas al centro del cuerpo, invariantes a distancia y tamaño.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💾 Historial de Traducciones</h4>
+                    <p>Base de datos SQLite para guardar y gestionar traducciones previas.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Instalación Section -->
+        <section id="instalacion">
+            <h2>📥 Instalación y Requisitos</h2>
+
+            <h3>Requisitos del Sistema</h3>
+            <table>
+                <tr>
+                    <th>Componente</th>
+                    <th>Requerimiento</th>
+                </tr>
+                <tr>
+                    <td>Sistema Operativo</td>
+                    <td>Windows 10+, macOS 10.15+, Linux</td>
+                </tr>
+                <tr>
+                    <td>Python</td>
+                    <td>3.10 o superior</td>
+                </tr>
+                <tr>
+                    <td>Cámara Web</td>
+                    <td>Requerida para captura en tiempo real</td>
+                </tr>
+                <tr>
+                    <td>Espacio en Disco</td>
+                    <td>~200MB para dependencias + modelo</td>
+                </tr>
+            </table>
+
+            <h3>Pasos de Instalación</h3>
+
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <h4>Clonar el Repositorio</h4>
+<pre><code>git clone https://github.com/[usuario]/lsc-traductor.git
+cd lsc-traductor</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <h4>Crear Entorno Virtual (Recomendado)</h4>
+<pre><code>python -m venv venv
+
+# Linux / Mac
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <h4>Instalar Dependencias</h4>
+<pre><code>pip install -r requirements.txt</code></pre>
+                    <p>Esto instalará automáticamente:</p>
+                    <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                        <li>mediapipe ≥ 0.10.9</li>
+                        <li>opencv-python == 4.9.0.80</li>
+                        <li>scikit-learn == 1.4.2</li>
+                        <li>Pillow == 10.3.0</li>
+                        <li>joblib == 1.4.0</li>
+                        <li>numpy == 1.26.4</li>
+                        <li>pyinstaller ≥ 6.0.0</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <h4>Ejecutar la Aplicación</h4>
+<pre><code>python main.py</code></pre>
+                </div>
+            </div>
+
+            <h3>Crear Ejecutable (.exe / .app)</h3>
+            <p>Para distribuir la aplicación como un programa independiente:</p>
+<pre><code># Ejecutable único (recomendado)
+python build.py --onefile
+
+# Carpeta con todos los archivos
+python build.py</code></pre>
+        </section>
+
+        <!-- Documentación Section -->
+        <section id="documentacion">
+            <h2>📚 Documentación</h2>
+
+            <h3>Estructura del Proyecto</h3>
+<pre><code>lsc-traductor/
+│
+├── data/                   # Datos de entrenamiento
+│   └── raw/                # Videos o imágenes originales
+│
+├── model/                  # Modelo entrenado (.pkl)
+│
+├── App/
+│   ├── logic/              # Lógica del negocio
+│   │   ├── trainer.py      # Entrenamiento del clasificador
+│   │   └── dataset_manager.py  # Gestión del dataset
+│   └── ui/                 # Interfaz de usuario
+│       └── app.py          # Interfaz principal (tkinter)
+│
+├── db/                     # Base de datos SQLite
+│   └── historial.db
+│
+├── main.py                 # Punto de entrada principal
+├── build.py                # Script de compilación
+└── requirements.txt        # Dependencias</code></pre>
+
+            <h3>Funcionalidades de la Interfaz</h3>
+
+            <h4>➕ Grabar Nueva Seña</h4>
+            <ol style="padding-left: 1.5rem;">
+                <li>Haz clic en <strong>"＋ Grabar Nueva Seña"</strong></li>
+                <li>Ingresa el nombre de la seña (ej: "hola", "gracias")</li>
+                <li>Configura el número de muestras a capturar (mínimo 10)</li>
+                <li>Presiona <strong>"▶ Iniciar Grabación"</strong></li>
+                <li>Después de la cuenta regresiva, mantén la seña visible frente a la cámara</li>
+                <li>El sistema capturará automáticamente las muestras</li>
+                <li>Las muestras se guardan en <code>data/landmarks/{nombre}.csv</code></li>
+            </ol>
+
+            <div class="highlight-box">
+                <h3>🔄 Ampliar Datos Existentes</h3>
+                <p>Si intentas grabar una seña que ya existe, el sistema te preguntará si deseas agregar muestras adicionales. Esto mejora el reconocimiento sin sobrescribir los datos existentes.</p>
+            </div>
+
+            <h4>🗑️ Limpiar Historial</h4>
+            <p>El botón <strong>"Limpiar"</strong> en el panel derecho borra el historial de traducciones guardadas en la base de datos.</p>
+
+            <h3>Gestión del Dataset (CLI)</h3>
+<pre><code># Listar todas las señas y su conteo
+python -m App.logic.dataset_manager list
+
+# Ver estadísticas detalladas
+python -m App.logic.dataset_manager stats
+
+# Eliminar todos los datos de una seña específica
+python -m App.logic.dataset_manager clear gracias</code></pre>
+
+            <h3>Vector de Landmarks (603 valores)</h3>
+            <table>
+                <tr>
+                    <th>Componente</th>
+                    <th>Landmarks</th>
+                    <th>Valores</th>
+                </tr>
+                <tr>
+                    <td>Mano izquierda</td>
+                    <td>21 × 3 (x, y, z)</td>
+                    <td>63</td>
+                </tr>
+                <tr>
+                    <td>Mano derecha</td>
+                    <td>21 × 3 (x, y, z)</td>
+                    <td>63</td>
+                </tr>
+                <tr>
+                    <td>Pose corporal</td>
+                    <td>25 × 3 (x, y, z)</td>
+                    <td>75</td>
+                </tr>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td><strong>201 × 3</strong></td>
+                    <td><strong>603</strong></td>
+                </tr>
+            </table>
+
+            <h3>Contribuir al Proyecto</h3>
+            <p>Este repositorio usa <strong>ramas por funcionalidad</strong>. Por favor no trabajes directamente sobre <code>main</code>.</p>
+<pre><code># Crear tu rama
+git checkout -b feature/nombre-de-tu-tarea
+
+# Cuando termines, hacer push
+git push origin feature/nombre-de-tu-tarea
+
+# Luego abrir un Pull Request para revisión</code></pre>
+        </section>
+
+        <!-- Descarga Section -->
+        <section id="descarga">
+            <h2>⬇️ Descargar Versión Ejecutable</h2>
+
+            <div class="highlight-box">
+                <h3>📦 Opciones de Descarga</h3>
+                <p>Selecciona la versión apropiada para tu sistema operativo:</p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🪟 Windows</h4>
+                    <p>Ejecutable único (.exe) - No requiere Python instalado</p>
+                    <p><strong>Tamaño:</strong> ~150 MB</p>
+                    <a href="#" class="download-btn">Descargar para Windows</a>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Próximamente en Releases</em></p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🍎 macOS</h4>
+                    <p>Aplicación (.app) - Compatible con macOS 10.15+</p>
+                    <p><strong>Tamaño:</strong> ~180 MB</p>
+                    <a href="#" class="download-btn">Descargar para macOS</a>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Próximamente en Releases</em></p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🐧 Linux</h4>
+                    <p>Binario ejecutable - Requiere librerías gráficas</p>
+                    <p><strong>Tamaño:</strong> ~140 MB</p>
+                    <a href="#" class="download-btn">Descargar para Linux</a>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;"><em>Próximamente en Releases</em></p>
+                </div>
+            </div>
+
+            <h3>📝 Notas Importantes</h3>
+            <ul style="padding-left: 1.5rem;">
+                <li>Los ejecutables incluyen todas las dependencias necesarias</li>
+                <li>Debes descargar también las carpetas <code>model/</code> y <code>data/</code> con el modelo entrenado</li>
+                <li>El primer inicio puede ser más lento (el ejecutable se descomprime en memoria)</li>
+                <li>En macOS, puede requerir permisos de cámara adicionales</li>
+            </ul>
+
+            <h3>🔗 Enlaces Relacionados</h3>
+            <ul style="padding-left: 1.5rem;">
+                <li><a href="https://github.com/[usuario]/lsc-traductor/releases" target="_blank">Ver todas las versiones en GitHub Releases</a></li>
+                <li><a href="https://github.com/[usuario]/lsc-traductor" target="_blank">Código fuente en GitHub</a></li>
+                <li><a href="#instalacion">Instrucciones de instalación desde código fuente</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>🎓 Proyecto Académico — Universidad de los Andes, 2026</p>
+        <p>Introducción a la Ingeniería de Sistemas y Computación · Grupo 7</p>
+        <p style="margin-top: 1rem; opacity: 0.8;">No tiene licencia de uso comercial</p>
+    </footer>
+</body>
+</html>
