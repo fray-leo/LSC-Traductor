@@ -14,6 +14,39 @@ from App.logic.classifier import SignClassifier
 from App.logic.database import TranslationDB
 from App.view.app import App
 from App.view.components.recording_dialog import RecordingDialog
+import sys
+import os
+
+def get_resource_path(relative_path):
+    """ Obtiene la ruta absoluta al recurso, funciona para dev y para PyInstaller.
+        Ideal para archivos de SÓLO LECTURA (modelos, imágenes).
+    """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+def get_writable_path(relative_path):
+    """ Obtiene una ruta absoluta en una ubicación con permisos de escritura.
+        Ideal para bases de datos o configuraciones.
+    """
+    if getattr(sys, 'frozen', False):
+        # Si es un ejecutable empaquetado, usamos la carpeta donde reside el .exe
+        base_path = os.path.dirname(sys.executable)
+    else:
+        # Si es modo desarrollo, la raíz del proyecto
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+# ------------------------------------------------
+MODEL_PATH = get_resource_path(os.path.join("model", "lsc_classifier.pkl"))
+ENCODER_PATH = get_resource_path(os.path.join("model", "label_encoder.pkl"))
+DB_PATH = get_writable_path(os.path.join("db", "historial.db"))
+LANDMARKS_DIR = get_writable_path(os.path.join("data", "landmarks"))
+# ------------------------------------------------
 
 # ------------------------------------------------------------------
 # Parámetros del loop
@@ -34,13 +67,13 @@ def main():
         return
 
     try:
-        clf = SignClassifier()
+        clf = SignClassifier(model_path=MODEL_PATH, encoder_path=ENCODER_PATH)
     except RuntimeError as e:
         print(f"[Error] {e}")
         cap.release()
         return
 
-    db = TranslationDB()
+    db = TranslationDB(db_path=DB_PATH)
 
     # ── Función para abrir diálogo de grabación ────────────────────────
     def open_recording_dialog():
@@ -55,7 +88,7 @@ def main():
             # Opcional: re-entrenar el modelo automáticamente
             # _retrain_model()
         
-        dialog = RecordingDialog(app._root, on_save=on_save)
+        dialog = RecordingDialog(app._root, on_save=on_save, data_dir=LANDMARKS_DIR)
         dialog.start()
         
         # Reanudar el loop

@@ -13,7 +13,7 @@ from pathlib import Path
 from datetime import datetime
 
 from App.logic.capture import HandCapture
-from App.logic.trainer import DATA_DIR
+from App.logic.trainer import get_default_paths
 
 
 class RecordingDialog:
@@ -29,14 +29,20 @@ class RecordingDialog:
     DEFAULT_SAMPLES = 50
     COUNTDOWN_SECONDS = 3
     
-    def __init__(self, parent, on_save=None):
+    def __init__(self, parent, on_save=None, data_dir: Path | str = None):
         """
         Args:
             parent: ventana padre (tk.Tk o tk.Toplevel)
             on_save: callback llamado cuando se guardan las muestras exitosamente
+            data_dir: ruta donde se guardarán los CSVs.
         """
         self._parent = parent
         self._on_save = on_save
+        
+        if data_dir is None:
+            data_dir = get_default_paths()["data_dir"]
+        self._data_dir = Path(data_dir)
+        
         self._running = False
         self._recording = False
         self._collected = 0
@@ -245,7 +251,7 @@ class RecordingDialog:
             return
         
         # Verificar si ya existe la seña
-        csv_path = DATA_DIR / f"{sign_name}.csv"
+        csv_path = self._data_dir / f"{sign_name}.csv"
         existing_count = 0
         if csv_path.exists():
             with open(csv_path, 'r') as f:
@@ -329,7 +335,8 @@ class RecordingDialog:
         
     def _save_sample(self, landmarks: list[float]):
         """Guarda una muestra en el CSV."""
-        csv_path = DATA_DIR / f"{self._sign_name}.csv"
+        self._data_dir.mkdir(parents=True, exist_ok=True)
+        csv_path = self._data_dir / f"{self._sign_name}.csv"
         file_exists = csv_path.exists()
         
         with open(csv_path, "a", newline="") as f:
@@ -374,7 +381,7 @@ class RecordingDialog:
         
     def _count_existing(self) -> int:
         """Cuenta muestras existentes para la seña actual."""
-        csv_path = DATA_DIR / f"{self._sign_name}.csv"
+        csv_path = self._data_dir / f"{self._sign_name}.csv"
         if not csv_path.exists():
             return 0
         with open(csv_path, newline="") as f:
