@@ -15,14 +15,6 @@ import joblib
 import numpy as np
 
 # ------------------------------------------------------------------
-# Rutas
-# ------------------------------------------------------------------
-
-ROOT = Path(__file__).resolve().parent.parent.parent
-MODEL_PATH = ROOT / "model" / "lsc_classifier.pkl"
-ENCODER_PATH = ROOT / "model" / "label_encoder.pkl"
-
-# ------------------------------------------------------------------
 # Clase principal
 # ------------------------------------------------------------------
 
@@ -43,7 +35,21 @@ class SignClassifier:
     # Valor devuelto cuando ninguna seña supera el umbral de confianza.
     UNCERTAIN = "..."
 
-    def __init__(self):
+    def __init__(self, model_path: Path | str = None, encoder_path: Path | str = None):
+        """
+        Args:
+            model_path:   Ruta al archivo .pkl del clasificador.
+            encoder_path: Ruta al archivo .pkl del encoder de etiquetas.
+        """
+        # Rutas por defecto si no se proveen (relativas al proyecto en dev)
+        if model_path is None:
+            model_path = Path(__file__).resolve().parent.parent.parent / "model" / "lsc_classifier.pkl"
+        if encoder_path is None:
+            encoder_path = Path(__file__).resolve().parent.parent.parent / "model" / "label_encoder.pkl"
+
+        self._model_path = Path(model_path)
+        self._encoder_path = Path(encoder_path)
+        
         self._clf, self._encoder = self._load_model()
 
     # ------------------------------------------------------------------
@@ -108,13 +114,12 @@ class SignClassifier:
     # Carga del modelo
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _load_model():
+    def _load_model(self):
         """
         Carga el clasificador y el encoder desde disco.
         Lanza RuntimeError con instrucciones claras si los archivos no existen.
         """
-        missing = [p for p in (MODEL_PATH, ENCODER_PATH) if not p.exists()]
+        missing = [p for p in (self._model_path, self._encoder_path) if not p.exists()]
         if missing:
             files = "\n  ".join(str(p) for p in missing)
             raise RuntimeError(
@@ -124,6 +129,6 @@ class SignClassifier:
                 "  2. python -m App.logic.trainer --train          (entrenar modelo)\n"
             )
 
-        clf = joblib.load(MODEL_PATH)
-        encoder = joblib.load(ENCODER_PATH)
+        clf = joblib.load(self._model_path)
+        encoder = joblib.load(self._encoder_path)
         return clf, encoder

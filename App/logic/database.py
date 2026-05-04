@@ -10,15 +10,6 @@ from datetime import datetime
 from pathlib import Path
 
 # ------------------------------------------------------------------
-# Ruta
-# ------------------------------------------------------------------
-
-ROOT = Path(__file__).resolve().parent.parent.parent
-DB_PATH = ROOT / "db" / "historial.db"
-
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-# ------------------------------------------------------------------
 # Clase principal
 # ------------------------------------------------------------------
 
@@ -36,8 +27,20 @@ class TranslationDB:
         )
     """
 
-    def __init__(self, db_path: Path = DB_PATH):
-        self._path = db_path
+    def __init__(self, db_path: Path | str = None):
+        """
+        Args:
+            db_path: Ruta al archivo .db. Si no se provee, se usa db/historial.db
+                     en la raíz del proyecto.
+        """
+        if db_path is None:
+            db_path = Path(__file__).resolve().parent.parent.parent / "db" / "historial.db"
+        
+        self._path = Path(db_path)
+        
+        # Asegurar que el directorio de la DB exista
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        
         self._init_db()
 
     # ------------------------------------------------------------------
